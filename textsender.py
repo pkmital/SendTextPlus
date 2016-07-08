@@ -104,7 +104,7 @@ class TextSender:
                 'to tell current session to write text '
             ])
         elif self.iterm_version() >= (2, 9):
-            if len(re.findall("\n", cmd)) > 0:
+            if self.is_python() and len(re.findall("\n", cmd)) > 0:
                 chunk = "%cpaste -q\n"
                 subprocess.check_call([
                     'osascript', '-e',
@@ -121,7 +121,7 @@ class TextSender:
                     'to tell current session to write text "' +
                     self.escape_dquote(chunk) + '" without newline'
                 ])
-            if len(re.findall("\n", cmd)) > 0:
+            if self.is_python() and len(re.findall("\n", cmd)) > 0:
                 chunk = "\n--"
                 subprocess.check_call([
                     'osascript', '-e',
