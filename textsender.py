@@ -28,8 +28,8 @@ class TextSender:
     def wrap_paste_magic_for_python(self, cmd):
         if self.is_python():
             cmd = cmd.rstrip("\n")
-            if len(re.findall("\n", cmd)) > 0:
-                cmd = "%cpaste -q\n" + cmd + "\n--"
+            # if len(re.findall("\n", cmd)) > 0:
+            #     cmd = "%cpaste -q\n" + cmd + "\n--\n"
         return cmd
 
     def send_text(self, cmd):
@@ -82,6 +82,7 @@ class TextSender:
                      'tell application "Terminal" to do script ' + cmd + ' in front window'])
         subprocess.check_call(args)
 
+
     @staticmethod
     def iterm_version():
         args = ['osascript', '-e', 'tell application "iTerm" to get version']
@@ -103,9 +104,25 @@ class TextSender:
                 'to tell current session to write text '
             ])
         elif self.iterm_version() >= (2, 9):
+            if len(re.findall("\n", cmd)) > 0:
+                chunk = "%cpaste -q\n"
+                subprocess.check_call([
+                    'osascript', '-e',
+                    'tell application "iTerm" to tell the current window ' +
+                    'to tell current session to write text "' +
+                    self.escape_dquote(chunk) + '" without newline'
+                ])
             n = 1000
             chunks = [cmd[i:i+n] for i in range(0, len(cmd), n)]
             for chunk in chunks:
+                subprocess.check_call([
+                    'osascript', '-e',
+                    'tell application "iTerm" to tell the current window ' +
+                    'to tell current session to write text "' +
+                    self.escape_dquote(chunk) + '" without newline'
+                ])
+            if len(re.findall("\n", cmd)) > 0:
+                chunk = "\n--"
                 subprocess.check_call([
                     'osascript', '-e',
                     'tell application "iTerm" to tell the current window ' +
@@ -117,6 +134,7 @@ class TextSender:
                 'tell application "iTerm" to tell the current window ' +
                 'to tell current session to write text ""'
             ])
+
         else:
             subprocess.check_call([
                 'osascript', '-e',
